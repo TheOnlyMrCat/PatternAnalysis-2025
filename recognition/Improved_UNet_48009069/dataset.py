@@ -1,15 +1,31 @@
 import os
 import torch
+import torch.nn as nn
 import torchvision
 import torchvision.io
 import torchvision.transforms.v2 as transforms
 
 
+class ToOneHotSegmentMap(nn.Module):
+    def forward(self, img):
+        labels = torch.unique(img)
+
+        channels = []
+        for label in labels:
+            channel = torch.zeros_like(img, dtype=torch.uint8)
+            channel[img == label] = 1
+            channels.append(channel)
+
+        new_img = torch.concat(channels)
+        return new_img
+
+
 class OASISDataset(torch.utils.data.Dataset):
-    def __init__(self, image_dir: str, segment_dir: str, transform=None):
+    def __init__(self, image_dir: str, segment_dir: str, transform=None, seg_transform=None):
         self.image_dir = image_dir
         self.segment_dir = segment_dir
         self.transform = transform
+        self.seg_transform = seg_transform
 
         self.cases = list(
             {filename.removeprefix("case_") for filename in os.listdir(image_dir)}
@@ -28,8 +44,8 @@ class OASISDataset(torch.utils.data.Dataset):
         segmentation = torchvision.io.decode_image(
             os.path.join(self.segment_dir, f"seg_{self.cases[idx]}")
         )
-        if self.transform:
-            segmentation = self.transform(segmentation)
+        if self.seg_transform:
+            segmentation = self.seg_transform(segmentation)
 
         return image, segmentation
 
@@ -49,17 +65,22 @@ def load_datasets(root: str) -> tuple[OASISDataset, OASISDataset]:
     transform = transforms.Compose(
         [transforms.ToImage(), transforms.ToDtype(torch.float32, scale=True)]
     )
+    seg_transform = transforms.Compose(
+        [transforms.ToImage(), transforms.ToDtype(torch.uint8), ToOneHotSegmentMap()]
+    )
 
     trainset = OASISDataset(
         image_dir=os.path.join(root, "keras_png_slices_train"),
         segment_dir=os.path.join(root, "keras_png_slices_seg_train"),
         transform=transform,
+        seg_transform=seg_transform,
     )
 
     testset = OASISDataset(
         image_dir=os.path.join(root, "keras_png_slices_test"),
         segment_dir=os.path.join(root, "keras_png_slices_seg_test"),
         transform=transform,
+        seg_transform=seg_transform,
     )
 
     return trainset, testset
