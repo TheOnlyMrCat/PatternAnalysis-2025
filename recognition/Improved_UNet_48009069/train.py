@@ -57,10 +57,11 @@ for epoch in range(epochs):
 
         epoch_loss += loss.item()
         run.step(loss.item())
-        print(f"Step {batch_idx + 1}/{len(train_loader)}: Loss = {loss:.4f}")
 
     avg_loss = epoch_loss / len(train_loader)
     losses.append(avg_loss)
     print(f"📈 Epoch {epoch+1}/{epochs} Complete: Avg Loss = {avg_loss:.4f}")
+
+run.save_model(model)
 
 run.finish()

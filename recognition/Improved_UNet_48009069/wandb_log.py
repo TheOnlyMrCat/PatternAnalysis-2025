@@ -1,4 +1,5 @@
 import os
+import torch
 
 try:
     import wandb
@@ -20,6 +21,9 @@ class WandbContext():
     def step(self, loss):
         self.log({"loss": loss})
 
+    def save_model(self, model):
+        torch.save(model.state_dict(), "model.pt")
+
 
 class ConnectedContext(WandbContext):
     def __init__(self, run):
@@ -30,6 +34,10 @@ class ConnectedContext(WandbContext):
 
     def finish(self):
         self.run.finish()
+
+    def save_model(self, model):
+        super().save_model(model)
+        self.run.log_model("model.pt")
 
 
 def setup(epochs: int, learning_rate: float) -> WandbContext:
