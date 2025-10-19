@@ -54,19 +54,22 @@ for epoch in range(epochs):
 
         run.step(loss.item())
 
+    del images, masks, loss, outputs
+
     # Test model every epoch
     model.eval()
     losses = []
     accuracies = []
-    for batch_idx, (images, masks) in enumerate(test_loader):
-        images, masks = images.to(device), masks.to(device)
-        outputs = model(images)
+    with torch.no_grad():
+        for batch_idx, (images, masks) in enumerate(test_loader):
+            images, masks = images.to(device), masks.to(device)
+            outputs = model(images)
 
-        losses.append(criterion(outputs, masks))
+            losses.append(criterion(outputs, masks))
 
-        seg = torch.argmax(masks, 1)
-        predicted_seg = torch.argmax(outputs, 1)
-        accuracies.append(torch.sum(seg == predicted_seg) / seg.numel())
+            seg = torch.argmax(masks, 1)
+            predicted_seg = torch.argmax(outputs, 1)
+            accuracies.append(torch.sum(seg == predicted_seg) / seg.numel())
 
     avg_loss = sum(losses) / len(losses)
     accuracy = sum(accuracies) / len(accuracies)
