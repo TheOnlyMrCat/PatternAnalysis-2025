@@ -21,7 +21,11 @@ class WandbContext():
     def step(self, loss):
         self.log({"loss": loss})
 
-    def save_model(self, model):
+    def epoch(self, epoch, loss, accuracy, model):
+        self.log({"test/loss": loss, "test/accuracy": accuracy})
+        self.save_model(model, aliases=[f"epoch - {epoch}", f"test_accuracy - {accuracy}"])
+
+    def save_model(self, model, aliases=None):
         torch.save(model.state_dict(), "model.pt")
 
 
@@ -35,9 +39,9 @@ class ConnectedContext(WandbContext):
     def finish(self):
         self.run.finish()
 
-    def save_model(self, model):
+    def save_model(self, model, aliases=None):
         super().save_model(model)
-        self.run.log_model("model.pt")
+        self.run.log_model("model.pt", aliases=aliases)
 
 
 def setup(epochs: int, learning_rate: float) -> WandbContext:

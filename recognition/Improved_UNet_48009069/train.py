@@ -11,7 +11,7 @@ import wandb_log
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if not torch.cuda.is_available():
-    print("Warning CUDA not Found. Using CPU")
+    print("Warning: CUDA not found. Using CPU")
 
 dataset_root = os.getenv("OASIS_ROOT")
 if dataset_root is None:
@@ -25,7 +25,7 @@ train_loader = torch.utils.data.DataLoader(trainset, batch_size=40, shuffle=True
 test_loader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle=False)
 
 # Hyper-parameters
-epochs = 8
+epochs = 12
 learning_rate = 1e-3
 
 run = wandb_log.setup(epochs, learning_rate)
@@ -35,12 +35,9 @@ model.to(device)
 criterion = modules.DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-losses = []
-
 print("> Starting training")
 for epoch in range(epochs):
     model.train()
-    epoch_loss = 0
 
     # Training loop with progress
     for batch_idx, (images, masks) in enumerate(train_loader):
@@ -55,13 +52,26 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
-        epoch_loss += loss.item()
         run.step(loss.item())
 
-    avg_loss = epoch_loss / len(train_loader)
-    losses.append(avg_loss)
-    print(f"📈 Epoch {epoch+1}/{epochs} Complete: Avg Loss = {avg_loss:.4f}")
+    # Test model every epoch
+    model.eval()
+    losses = []
+    accuracies = []
+    for batch_idx, (images, masks) in enumerate(test_loader):
+        images, masks = images.to(device), masks.to(device)
+        outputs = model(images)
 
-run.save_model(model)
+        losses.append(criterion(outputs, masks))
+
+        seg = torch.argmax(masks, 1)
+        predicted_seg = torch.argmax(outputs, 1)
+        accuracies.append(torch.sum(seg == predicted_seg) / seg.numel())
+
+    avg_loss = sum(losses) / len(losses)
+    accuracy = sum(accuracies) / len(accuracies)
+    run.epoch(epoch + 1, avg_loss, accuracy, model)
+
+    print(f"📈 Epoch {epoch+1}/{epochs} Complete: Avg Loss = {avg_loss:.4f}; Accuracy = {accuracy * 100:.2f}%")
 
 run.finish()
