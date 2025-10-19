@@ -30,7 +30,7 @@ learning_rate = 1e-3
 
 run = wandb_log.setup(epochs, learning_rate)
 
-model = modules.SimpleUNet(in_channels=1, out_channels=4, dropout_p=0.2)
+model = modules.ImprovedUNet(in_channels=1, out_channels=4, dropout_p=0.2)
 model.to(device)
 criterion = modules.DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)

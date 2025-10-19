@@ -52,7 +52,7 @@ def setup(epochs: int, learning_rate: float) -> WandbContext:
             # Track hyperparameters and run metadata.
             config={
                 "learning_rate": learning_rate,
-                "architecture": "UNet",
+                "architecture": "Improved UNet",
                 "dataset": "OASIS",
                 "epochs": epochs,
             },
