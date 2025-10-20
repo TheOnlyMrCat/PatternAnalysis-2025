@@ -72,10 +72,10 @@ class ContextBlock(nn.Module):
     def forward(self, x):
         c1 = self.activation(self.conv1(self.norm1(x)))
         d1 = self.dropout1(c1)
-        c2 = self.activation(self.conv2(self.norm2(d1)))
+        c2 = self.conv2(self.norm2(d1))
         d2 = self.dropout1(c2)
 
-        return x + d2
+        return self.activation(x + d2)
 
 
 class ImprovedUNet(nn.Module):
@@ -104,13 +104,13 @@ class ImprovedUNet(nn.Module):
             ContextBlock(256, dropout_p),
         )
         self.enc5 = nn.Sequential(
-            nn.Conv2d(256, 256, 3, padding=1, stride=2),
+            nn.Conv2d(256, 512, 3, padding=1, stride=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
-            ContextBlock(256, dropout_p),
+            ContextBlock(512, dropout_p),
         )
 
         # Decoder (upsampling)
-        self.dec5 = self.decoder_block(256, 256, dropout_p)
+        self.dec5 = self.decoder_block(512, 256, dropout_p)
         self.dec4 = self.decoder_block(256 + 128, 128, dropout_p)
         self.dec3 = self.decoder_block(128 + 64, 64, dropout_p)
         self.dec2 = self.decoder_block(64 + 32, 32, dropout_p)
