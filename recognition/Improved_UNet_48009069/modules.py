@@ -83,13 +83,29 @@ class ImprovedUNet(nn.Module):
         super().__init__()
 
         # Encoder (downsampling)
-        self.enc1 = self.encoder_block(in_channels, 32, dropout_p)
-        self.enc2 = self.encoder_block(32, 64, dropout_p)
-        self.enc3 = self.encoder_block(64, 128, dropout_p)
-        self.enc4 = self.encoder_block(128, 128, dropout_p)
+        self.enc1 = nn.Sequential(
+            nn.Conv2d(in_channels, 32, 3, padding=1),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            ContextBlock(32, dropout_p),
+        )
+        self.enc2 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, padding=1, stride=2),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            ContextBlock(64, dropout_p),
+        )
+        self.enc3 = nn.Sequential(
+            nn.Conv2d(64, 128, 3, padding=1, stride=2),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            ContextBlock(128, dropout_p),
+        )
+        self.enc4 = nn.Sequential(
+            nn.Conv2d(128, 256, 3, padding=1, stride=2),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            ContextBlock(256, dropout_p),
+        )
 
         # Decoder (upsampling)
-        self.dec4 = self.decoder_block(128 + 128, 128, dropout_p)
+        self.dec4 = self.decoder_block(256 + 128, 128, dropout_p)
         self.dec3 = self.decoder_block(128 + 64, 64, dropout_p)
         self.dec2 = self.decoder_block(64 + 32, 32, dropout_p)
         self.dec1 = nn.Conv2d(32, out_channels, 1)
@@ -98,15 +114,8 @@ class ImprovedUNet(nn.Module):
         self.seg3 = nn.Conv2d(128, out_channels, 1)
         self.seg2 = nn.Conv2d(64, out_channels, 1)
 
-        self.pool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.sigmoid = nn.Sigmoid()  # Sigmoid activation for final output
-
-    def encoder_block(self, in_channels, out_channels, dropout_p):
-        return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, 3, padding=1),
-            ContextBlock(out_channels, dropout_p),
-        )
 
     def decoder_block(self, in_channels, out_channels, dropout_p):
         return nn.Sequential(
@@ -122,10 +131,10 @@ class ImprovedUNet(nn.Module):
 
     def forward(self, x):
         # Encoder
-        e1 = self.enc1(x)              # 256x256 -> 256x256
-        e2 = self.enc2(self.pool(e1))  # 256x256 -> 128x128
-        e3 = self.enc3(self.pool(e2))  # 128x128 -> 64x64
-        e4 = self.enc4(self.pool(e3))  # 64x64 -> 32x32
+        e1 = self.enc1(x)   # 256x256 -> 256x256
+        e2 = self.enc2(e1)  # 256x256 -> 128x128
+        e3 = self.enc3(e2)  # 128x128 -> 64x64
+        e4 = self.enc4(e3)  # 64x64 -> 32x32
 
         # Decoder with skip connections
         d4 = self.dec4(torch.cat([self.upsample(e4), e3], 1)) # 32x32 -> 64x64
@@ -134,9 +143,9 @@ class ImprovedUNet(nn.Module):
         d1 = self.dec1(d2)
 
         # Segmentation output from all decoder stages
-        s3 = self.seg3(d4)
-        s2 = self.seg2(d3)
-        s1 = d1
+        s3 = self.seg3(d4)  # 64x64
+        s2 = self.seg2(d3)  # 128x128
+        s1 = d1             # 256x256
 
         out = self.upsample(self.upsample(s3) + s2) + s1
 
