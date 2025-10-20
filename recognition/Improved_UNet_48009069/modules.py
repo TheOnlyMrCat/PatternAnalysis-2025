@@ -60,18 +60,22 @@ class ContextBlock(nn.Module):
     def __init__(self, channels, dropout_p):
         super().__init__()
 
+        self.norm1 = nn.BatchNorm2d(channels)
         self.conv1 = nn.Conv2d(channels, channels, 3, padding=1)
-        self.dropout = nn.Dropout2d(dropout_p)
+        self.dropout1 = nn.Dropout2d(dropout_p)
+        self.norm2 = nn.BatchNorm2d(channels)
         self.conv2 = nn.Conv2d(channels, channels, 3, padding=1)
+        self.dropout2 = nn.Dropout2d(dropout_p)
 
-        self.activation = nn.ReLU()
+        self.activation = nn.LeakyReLU(negative_slope=0.2)
 
     def forward(self, x):
-        c1 = self.activation(self.conv1(x))
-        d = self.dropout(c1)
-        c2 = self.activation(self.conv2(d))
+        c1 = self.activation(self.conv1(self.norm1(x)))
+        d1 = self.dropout1(c1)
+        c2 = self.activation(self.conv2(self.norm2(d1)))
+        d2 = self.dropout1(c2)
 
-        return x + c2
+        return x + d2
 
 
 class ImprovedUNet(nn.Module):
