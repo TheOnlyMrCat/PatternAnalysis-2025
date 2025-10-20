@@ -103,8 +103,14 @@ class ImprovedUNet(nn.Module):
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(256, dropout_p),
         )
+        self.enc5 = nn.Sequential(
+            nn.Conv2d(256, 256, 3, padding=1, stride=2),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            ContextBlock(256, dropout_p),
+        )
 
         # Decoder (upsampling)
+        self.dec5 = self.decoder_block(256, 256, dropout_p)
         self.dec4 = self.decoder_block(256 + 128, 128, dropout_p)
         self.dec3 = self.decoder_block(128 + 64, 64, dropout_p)
         self.dec2 = self.decoder_block(64 + 32, 32, dropout_p)
@@ -135,9 +141,11 @@ class ImprovedUNet(nn.Module):
         e2 = self.enc2(e1)  # 256x256 -> 128x128
         e3 = self.enc3(e2)  # 128x128 -> 64x64
         e4 = self.enc4(e3)  # 64x64 -> 32x32
+        e5 = self.enc5(e4)  # 32x32 -> 16x16
 
         # Decoder with skip connections
-        d4 = self.dec4(torch.cat([self.upsample(e4), e3], 1)) # 32x32 -> 64x64
+        d5 = self.dec5(self.upsample(e5)) # 16x16 -> 32x32
+        d4 = self.dec4(torch.cat([self.upsample(d5), e3], 1)) # 32x32 -> 64x64
         d3 = self.dec3(torch.cat([self.upsample(d4), e2], 1)) # 64x64 -> 128x128
         d2 = self.dec2(torch.cat([self.upsample(d3), e1], 1)) # 128x128 -> 256x256
         d1 = self.dec1(d2)
