@@ -89,9 +89,9 @@ class ImprovedUNet(nn.Module):
         self.enc4 = self.encoder_block(128, 128, dropout_p)
 
         # Decoder (upsampling)
-        self.dec4 = self.decoder_block(128 + 128, 128)
-        self.dec3 = self.decoder_block(128 + 64, 64)
-        self.dec2 = self.decoder_block(64 + 32, 32)
+        self.dec4 = self.decoder_block(128 + 128, 128, dropout_p)
+        self.dec3 = self.decoder_block(128 + 64, 64, dropout_p)
+        self.dec2 = self.decoder_block(64 + 32, 32, dropout_p)
         self.dec1 = nn.Conv2d(32, out_channels, 1)
 
         # Segmentation convolutions
@@ -108,10 +108,16 @@ class ImprovedUNet(nn.Module):
             ContextBlock(out_channels, dropout_p),
         )
 
-    def decoder_block(self, in_channels, out_channels):
+    def decoder_block(self, in_channels, out_channels, dropout_p):
         return nn.Sequential(
+            nn.BatchNorm2d(in_channels),
             nn.Conv2d(in_channels, in_channels, 3, padding=1),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            nn.Dropout2d(dropout_p),
+            nn.BatchNorm2d(in_channels),
             nn.Conv2d(in_channels, out_channels, 1),
+            nn.LeakyReLU(negative_slope=0.2, inplace=True),
+            nn.Dropout2d(dropout_p),
         )
 
     def forward(self, x):
