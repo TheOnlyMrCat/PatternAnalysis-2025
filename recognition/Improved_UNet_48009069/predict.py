@@ -58,7 +58,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not torch.cuda.is_available():
         print("Warning: CUDA not found. Using CPU")
-    model = modules.SimpleUNet(in_channels=1, out_channels=4, dropout_p=0.2)
+    model = modules.ImprovedUNet(in_channels=1, out_channels=4, dropout_p=0.2)
     model.load_state_dict(torch.load(args.model, map_location=device))
 
     dataset_root = os.getenv("OASIS_ROOT")

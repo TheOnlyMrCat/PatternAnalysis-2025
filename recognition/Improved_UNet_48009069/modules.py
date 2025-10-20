@@ -94,6 +94,10 @@ class ImprovedUNet(nn.Module):
         self.dec2 = self.decoder_block(64 + 32, 32)
         self.dec1 = nn.Conv2d(32, out_channels, 1)
 
+        # Segmentation convolutions
+        self.seg3 = nn.Conv2d(128, out_channels, 1)
+        self.seg2 = nn.Conv2d(64, out_channels, 1)
+
         self.pool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
         self.sigmoid = nn.Sigmoid()  # Sigmoid activation for final output
@@ -121,7 +125,14 @@ class ImprovedUNet(nn.Module):
         d4 = self.dec4(torch.cat([self.upsample(e4), e3], 1)) # 32x32 -> 64x64
         d3 = self.dec3(torch.cat([self.upsample(d4), e2], 1)) # 64x64 -> 128x128
         d2 = self.dec2(torch.cat([self.upsample(d3), e1], 1)) # 128x128 -> 256x256
-        out = self.dec1(d2)
+        d1 = self.dec1(d2)
+
+        # Segmentation output from all decoder stages
+        s3 = self.seg3(d4)
+        s2 = self.seg2(d3)
+        s1 = d1
+
+        out = self.upsample(self.upsample(s3) + s2) + s1
 
         # Apply sigmoid activation to final output
         out = self.sigmoid(out)
