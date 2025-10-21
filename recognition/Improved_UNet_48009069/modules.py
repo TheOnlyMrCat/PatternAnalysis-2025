@@ -84,27 +84,27 @@ class ImprovedUNet(nn.Module):
 
         # Encoder (downsampling)
         self.enc1 = nn.Sequential(
-            nn.Conv2d(in_channels, 32, 3, padding=1),
+            nn.Conv2d(in_channels, 32, 5, padding=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(32, dropout_p),
         )
         self.enc2 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, padding=1, stride=2),
+            nn.Conv2d(32, 64, 5, padding=2, stride=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(64, dropout_p),
         )
         self.enc3 = nn.Sequential(
-            nn.Conv2d(64, 128, 3, padding=1, stride=2),
+            nn.Conv2d(64, 128, 5, padding=2, stride=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(128, dropout_p),
         )
         self.enc4 = nn.Sequential(
-            nn.Conv2d(128, 256, 3, padding=1, stride=2),
+            nn.Conv2d(128, 256, 5, padding=2, stride=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(256, dropout_p),
         )
         self.enc5 = nn.Sequential(
-            nn.Conv2d(256, 512, 3, padding=1, stride=2),
+            nn.Conv2d(256, 512, 5, padding=2, stride=2),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             ContextBlock(512, dropout_p),
         )
