@@ -60,10 +60,10 @@ class ContextBlock(nn.Module):
     def __init__(self, channels, dropout_p):
         super().__init__()
 
-        self.norm1 = nn.BatchNorm2d(channels)
+        self.norm1 = nn.InstanceNorm2d(channels)
         self.conv1 = nn.Conv2d(channels, channels, 3, padding=1)
         self.dropout1 = nn.Dropout2d(dropout_p)
-        self.norm2 = nn.BatchNorm2d(channels)
+        self.norm2 = nn.InstanceNorm2d(channels)
         self.conv2 = nn.Conv2d(channels, channels, 3, padding=1)
         self.dropout2 = nn.Dropout2d(dropout_p)
 
@@ -125,11 +125,11 @@ class ImprovedUNet(nn.Module):
 
     def decoder_block(self, in_channels, out_channels, dropout_p):
         return nn.Sequential(
-            nn.BatchNorm2d(in_channels),
+            nn.InstanceNorm2d(in_channels),
             nn.Conv2d(in_channels, in_channels, 3, padding=1),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             nn.Dropout2d(dropout_p),
-            nn.BatchNorm2d(in_channels),
+            nn.InstanceNorm2d(in_channels),
             nn.Conv2d(in_channels, out_channels, 1),
             nn.LeakyReLU(negative_slope=0.2, inplace=True),
             nn.Dropout2d(dropout_p),

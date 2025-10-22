@@ -21,7 +21,7 @@ if dataset_root is None:
 print(f"> Load dataset from {dataset_root}")
 
 trainset, testset = dataset.load_datasets(dataset_root)
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=40, shuffle=True)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle=False)
 
 # Hyper-parameters

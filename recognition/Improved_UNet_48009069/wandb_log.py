@@ -8,7 +8,7 @@ except ImportError:
 
 
 entity_name = os.getenv("WANDB_ENTITY")
-project_name = os.getenv("WANDB_PROJECT")
+project_name = os.getenv("WANDB_PROJECT", "oasis-improved-unet")
 
 
 class WandbContext():
