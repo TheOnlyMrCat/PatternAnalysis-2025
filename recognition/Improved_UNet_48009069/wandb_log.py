@@ -8,7 +8,7 @@ except ImportError:
 
 
 entity_name = os.getenv("WANDB_ENTITY")
-project_name = os.getenv("WANDB_PROJECT", "oasis-improved-unet")
+project_name = os.getenv("WANDB_PROJECT", "hipmri-improved-unet")
 
 
 class WandbContext():
@@ -22,8 +22,8 @@ class WandbContext():
         self.log({"loss": loss})
 
     def epoch(self, epoch, loss, accuracy, model):
-        self.log({"test/loss": loss, "test/accuracy": accuracy})
-        self.save_model(model, aliases=[f"epoch - {epoch}", f"test_accuracy - {accuracy}"])
+        self.log({"val/loss": loss, "val/accuracy": accuracy})
+        self.save_model(model, aliases=[f"epoch - {epoch}", f"val_accuracy - {accuracy}"])
 
     def save_model(self, model, aliases=None):
         torch.save(model.state_dict(), "model.pt")
@@ -53,7 +53,7 @@ def setup(epochs: int, learning_rate: float) -> WandbContext:
             config={
                 "learning_rate": learning_rate,
                 "architecture": "Improved UNet",
-                "dataset": "OASIS",
+                "dataset": "HipMRI",
                 "epochs": epochs,
             },
         )
