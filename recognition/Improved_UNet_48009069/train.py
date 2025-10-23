@@ -28,10 +28,11 @@ test_loader = torch.utils.data.DataLoader(testset, batch_size=16, shuffle=False)
 # Hyper-parameters
 epochs = 12
 learning_rate = 1e-3
+dropout_p = 0.3
 
-run = wandb_log.setup(epochs, learning_rate)
+run = wandb_log.setup(epochs, learning_rate, dropout_p)
 
-model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=0.3)
+model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=dropout_p)
 model.to(device)
 criterion = modules.DiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)

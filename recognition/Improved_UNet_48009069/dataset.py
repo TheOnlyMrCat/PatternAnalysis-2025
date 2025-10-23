@@ -158,7 +158,7 @@ class HipMRIDataset(torch.utils.data.Dataset):
         if self.seg_transform:
             segmentation = self.seg_transform(segmentation)
 
-        return np.reshape(image, (1,) + image.shape), segmentation.transpose((2, 0, 1))
+        return torch.from_numpy(np.reshape(image, (1,) + image.shape)), torch.from_numpy(segmentation.transpose((2, 0, 1)))
 
 def load_datasets(root: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset]:
     """

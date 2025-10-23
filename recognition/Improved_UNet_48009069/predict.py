@@ -12,7 +12,7 @@ def segment_image(model, image, seg):
     model.eval()
     output = torch.squeeze(model(torch.unsqueeze(image, 0)), 0)
 
-    fig, axes = plt.subplots(2, 6, figsize=(15, 6))
+    fig, axes = plt.subplots(2, 7, figsize=(18, 6))
 
     # Plot image
     axes[0][0].imshow(image.cpu().numpy().transpose(1, 2, 0), cmap="gray")
@@ -23,7 +23,7 @@ def segment_image(model, image, seg):
     axes[1][0].axis("off")
 
     # Plot each one-hot channel
-    for ch in range(4):
+    for ch in range(5):
         # Ground truth segmentation
         axes[0][ch + 1].imshow(seg[ch].cpu().numpy(), cmap="gray", vmin=0, vmax=1)
         axes[0][ch + 1].set_title(f"Seg ch {ch}")
@@ -39,12 +39,12 @@ def segment_image(model, image, seg):
     predict_full = torch.argmax(output, 0)
     accuracy = torch.sum(seg_full == predict_full) / seg_full.numel()
 
-    axes[0][5].imshow(seg_full.cpu().numpy(), cmap="tab10")
-    axes[0][5].set_title("Ground truth seg")
-    axes[0][5].axis("off")
-    axes[1][5].imshow(predict_full.cpu().numpy(), cmap="tab10")
-    axes[1][5].set_title(f"Predicted seg (accuracy: {accuracy * 100:.1f}%)")
-    axes[1][5].axis("off")
+    axes[0][6].imshow(seg_full.cpu().numpy(), cmap="tab10")
+    axes[0][6].set_title("Ground truth seg")
+    axes[0][6].axis("off")
+    axes[1][6].imshow(predict_full.cpu().numpy(), cmap="tab10")
+    axes[1][6].set_title(f"Predicted seg (accuracy: {accuracy * 100:.1f}%)")
+    axes[1][6].axis("off")
 
     plt.tight_layout()
     plt.show()
@@ -58,12 +58,12 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not torch.cuda.is_available():
         print("Warning: CUDA not found. Using CPU")
-    model = modules.ImprovedUNet(in_channels=1, out_channels=4, dropout_p=0.2)
+    model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=0.2)
     model.load_state_dict(torch.load(args.model, map_location=device))
 
-    dataset_root = os.getenv("OASIS_ROOT")
+    dataset_root = os.getenv("HIPMRI_ROOT")
     if dataset_root is None:
-        print("error: need $OASIS_ROOT to be set to root path of dataset")
+        print("error: need $HIPMRI_ROOT to be set to root path of dataset")
         exit(1)
     trainset, valset, testset = dataset.load_datasets(dataset_root)
 

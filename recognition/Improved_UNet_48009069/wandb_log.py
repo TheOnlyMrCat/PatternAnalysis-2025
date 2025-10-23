@@ -44,7 +44,7 @@ class ConnectedContext(WandbContext):
         self.run.log_model("model.pt", aliases=aliases)
 
 
-def setup(epochs: int, learning_rate: float) -> WandbContext:
+def setup(epochs: int, learning_rate: float, dropout_p: float) -> WandbContext:
     if wandb is not None:
         run = wandb.init(
             entity=entity_name,
@@ -55,6 +55,7 @@ def setup(epochs: int, learning_rate: float) -> WandbContext:
                 "architecture": "Improved UNet",
                 "dataset": "HipMRI",
                 "epochs": epochs,
+                "dropout_p": dropout_p,
             },
         )
         return ConnectedContext(run)
