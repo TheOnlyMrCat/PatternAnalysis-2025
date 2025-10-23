@@ -65,7 +65,7 @@ if __name__ == "__main__":
     if dataset_root is None:
         print("error: need $HIPMRI_ROOT to be set to root path of dataset")
         exit(1)
-    trainset, valset, testset = dataset.load_datasets(dataset_root)
+    testset = dataset.load_test(dataset_root)
 
     image, seg = random.choice(testset)
     segment_image(model, image, seg)

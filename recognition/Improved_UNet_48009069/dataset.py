@@ -160,9 +160,9 @@ class HipMRIDataset(torch.utils.data.Dataset):
 
         return torch.from_numpy(np.reshape(image, (1,) + image.shape)), torch.from_numpy(segmentation.transpose((2, 0, 1)))
 
-def load_datasets(root: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset]:
+def load_train_val(root: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
     """
-    Load the training and testing OASIS datasets from the given root directory.
+    Load the training and validation HipMRI datasets from the given root directory.
 
     The expected directory structure looks like:
 
@@ -185,9 +185,27 @@ def load_datasets(root: str) -> tuple[torch.utils.data.Dataset, torch.utils.data
         segment_dir=os.path.join(root, "keras_slices_seg_validate"),
     )
 
+    return trainset, valset
+
+
+def load_test(root: str) -> torch.utils.data.Dataset:
+    """
+    Load the testing HipMRI dataset from the given root directory.
+
+    The expected directory structure looks like:
+
+    root
+    |- /keras_slices_train
+    |- /keras_slices_seg_train
+    |- /keras_slices_validate
+    |- /keras_slices_seg_validate
+    |- /keras_slices_test
+    |- /keras_slices_seg_test
+    """
     testset = HipMRIDataset(
         image_dir=os.path.join(root, "keras_slices_test"),
         segment_dir=os.path.join(root, "keras_slices_seg_test"),
     )
 
-    return trainset, valset, testset
+    return testset
+    
