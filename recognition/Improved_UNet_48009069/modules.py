@@ -142,13 +142,13 @@ class WeightedDiceLoss(nn.Module):
     def forward(self, predictions, targets):
         """
         Args:
-            predictions: Sigmoid output from model [C, H, W] (values between 0-1)
-            targets: Binary ground truth [C, H, W] (values 0 or 1)
+            predictions: Sigmoid output from model [B, C, H, W] (values between 0-1)
+            targets: Binary ground truth [B, C, H, W] (values 0 or 1)
 
         C should equal the number of weights passed to __init__
         """
 
         return sum(
-            weight * criterion(predictions[i, :, :], targets[i, :, :])
+            weight * criterion(predictions[:, i], targets[:, i])
             for i, (weight, criterion) in enumerate(zip(self.weights, self.losses))
         )

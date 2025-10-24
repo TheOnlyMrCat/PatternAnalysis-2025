@@ -22,7 +22,7 @@ print(f"> Load dataset from {dataset_root}")
 
 trainset, valset = dataset.load_train_val(dataset_root)
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True)
-val_loader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True)
+val_loader = torch.utils.data.DataLoader(valset, batch_size=16, shuffle=True)
 
 # Hyper-parameters
 epochs = 12
