@@ -33,7 +33,7 @@ run = wandb_log.setup(epochs, learning_rate, dropout_p)
 
 model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=dropout_p)
 model.to(device)
-criterion = modules.DiceLoss()
+criterion = modules.WeightedDiceLoss([1.0, 1.0, 1.0, 1.0, 1.0])
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 print("> Starting training")

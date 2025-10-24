@@ -102,7 +102,8 @@ class ImprovedUNet(nn.Module):
 
 
 class DiceLoss(nn.Module):
-    """Dice Loss for binary segmentation.
+    """
+    Dice Loss for binary segmentation.
 
     Dice Loss = 1 - Dice Coefficient
     Dice Coefficient = (2 * |X ∩ Y|) / (|X| + |Y|)
@@ -130,3 +131,24 @@ class DiceLoss(nn.Module):
 
         # Return Dice Loss (1 - Dice Coefficient)
         return 1 - dice_coeff
+
+
+class WeightedDiceLoss(nn.Module):
+    def __init__(self, weights: list[float], smooth=1e-6):
+        super(WeightedDiceLoss, self).__init__()
+        self.weights = weights
+        self.losses = [DiceLoss(smooth=smooth) for _ in weights]
+
+    def forward(self, predictions, targets):
+        """
+        Args:
+            predictions: Sigmoid output from model [C, H, W] (values between 0-1)
+            targets: Binary ground truth [C, H, W] (values 0 or 1)
+
+        C should equal the number of weights passed to __init__
+        """
+
+        return sum(
+            weight * criterion(predictions[i, :, :], targets[i, :, :])
+            for i, (weight, criterion) in enumerate(zip(self.weights, self.losses))
+        )

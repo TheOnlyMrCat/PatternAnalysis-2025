@@ -31,7 +31,7 @@ def segment_image(model, image, seg):
 
         # Predicted segmentation
         axes[1][ch + 1].imshow(output[ch].cpu().detach().numpy(), cmap="gray")
-        axes[1][ch + 1].set_title(f"Predicted ch {ch}")
+        axes[1][ch + 1].set_title(f"Predicted (DSC: {1 - modules.DiceLoss()(output[ch], seg[ch]):.3f})")
         axes[1][ch + 1].axis("off")
 
     # Create collated segmentation maps
@@ -43,7 +43,7 @@ def segment_image(model, image, seg):
     axes[0][6].set_title("Ground truth seg")
     axes[0][6].axis("off")
     axes[1][6].imshow(predict_full.cpu().numpy(), cmap="tab10")
-    axes[1][6].set_title(f"Predicted seg (accuracy: {accuracy * 100:.1f}%)")
+    axes[1][6].set_title(f"Predicted (accuracy: {accuracy * 100:.1f}%)")
     axes[1][6].axis("off")
 
     plt.tight_layout()
