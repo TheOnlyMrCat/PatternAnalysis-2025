@@ -152,3 +152,28 @@ class WeightedDiceLoss(nn.Module):
             weight * criterion(predictions[:, i], targets[:, i])
             for i, (weight, criterion) in enumerate(zip(self.weights, self.losses))
         )
+
+
+class MulticlassDiceLoss(nn.Module):
+    def __init__(self, smooth=1e-6):
+        super(MulticlassDiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, predictions, targets):
+        """
+        Args:
+            predictions: Sigmoid output from model [B, C, H, W] (values between 0-1)
+            targets: Binary ground truth [B, C, H, W] (values 0 or 1)
+
+        C should equal the number of classes passed to __init__
+        """
+
+        # Reshape and flatten tensors to [C, BHW]
+        predictions = torch.flatten(torch.permute(predictions, (1, 0, 2, 3)), start_dim=1)
+        targets = torch.flatten(torch.permute(targets, (1, 0, 2, 3)), start_dim=1).float()
+
+        # Calculate intersection and union
+        intersection = (predictions * targets).sum(dim=1)
+        dice_coeff = (intersection + self.smooth) / (predictions.sum(dim=1) + targets.sum(dim=1) + self.smooth)
+
+        return 1 - 2 * torch.mean(dice_coeff)

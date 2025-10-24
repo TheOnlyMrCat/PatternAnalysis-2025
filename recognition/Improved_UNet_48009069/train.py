@@ -25,7 +25,7 @@ train_loader = torch.utils.data.DataLoader(trainset, batch_size=16, shuffle=True
 val_loader = torch.utils.data.DataLoader(valset, batch_size=16, shuffle=True)
 
 # Hyper-parameters
-epochs = 12
+epochs = 24
 learning_rate = 1e-3
 dropout_p = 0.3
 
@@ -33,7 +33,7 @@ run = wandb_log.setup(epochs, learning_rate, dropout_p)
 
 model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=dropout_p)
 model.to(device)
-criterion = modules.WeightedDiceLoss([1.0, 1.0, 1.0, 1.0, 1.0])
+criterion = modules.MulticlassDiceLoss()
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 print("> Starting training")
