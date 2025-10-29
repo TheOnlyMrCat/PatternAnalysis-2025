@@ -108,7 +108,7 @@ def test_summary(model):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model", default="model.pt", help="the model to load")
-    parser.add_argument("action", default="random", choices=["random", "summary"])
+    parser.add_argument("action", choices=["random", "summary"])
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
