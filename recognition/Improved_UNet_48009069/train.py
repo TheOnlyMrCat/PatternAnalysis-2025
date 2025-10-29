@@ -98,7 +98,7 @@ with torch.no_grad():
 
         losses.append(criterion(outputs, masks))
         similarities.append([
-            1 - modules.DiceLoss()(outputs[:, ch], masks[:, ch])
+            1 - modules.DiceLoss()(outputs[:, ch], masks[:, ch]).cpu()
             for ch in range(5)
         ])
 
@@ -106,8 +106,8 @@ with torch.no_grad():
         predicted_seg = torch.argmax(outputs, 1)
         accuracies.append(torch.sum(seg == predicted_seg) / seg.numel())
 
-avg_loss = sum(losses) / len(losses)
-accuracy = sum(accuracies) / len(accuracies)
+avg_loss = (sum(losses) / len(losses)).cpu()
+accuracy = (sum(accuracies) / len(accuracies)).cpu()
 sim = np.asarray(similarities)
 print("Training complete!")
 print(f"Average loss: {avg_loss:.5f}")
