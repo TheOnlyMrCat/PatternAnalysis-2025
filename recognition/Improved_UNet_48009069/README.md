@@ -1,3 +1,24 @@
+# 2D Improved UNet on the HipMRI Study on Prostate Cancer
+
+Author: Max Guppy (48009069)
+
+![
+  A plot showing the output of the model.
+  The plot has two rows and seven columns.
+  On the left of each row is a slice of an MRI image of a man's pelvis.
+  To the right of each image are five images showing which parts of the image are background, body, bone, bladder, and prostate.
+  On the very right of each row is a coloured combined segmentation of the entire image.
+](static/celestial_pyramid_12_157.png)
+
+The model is a 2D Improved UNet, based on the brain tumor segmentation model by Isensee et al. (<https://arxiv.org/pdf/1802.10508v1>)
+
+![
+  A diagram of the model's architecture.
+  There are four encoder stages, starting with 32 output channels and doubling the number of channels after each stage.
+  The three decoder stages feed into each other like in a normal UNet, but also a 1x1 convolution layer.
+  The outputs of the three 1x1 convolution layers are upscaled and combined to produce the output.
+](static/Improved_UNet.svg)
+
 ## Running
 
 ### Dependencies

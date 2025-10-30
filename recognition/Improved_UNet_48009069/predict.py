@@ -110,10 +110,11 @@ def segment_image(model, image, seg):
     axes[1][0].axis("off")
 
     # Plot each one-hot channel
+    channel_names = ["Background", "Body", "Bone", "Bladder", "Prostate"]
     for ch in range(5):
         # Ground truth segmentation
         axes[0][ch + 1].imshow(seg[ch].cpu().numpy(), cmap="gray", vmin=0, vmax=1)
-        axes[0][ch + 1].set_title(f"Seg ch {ch}")
+        axes[0][ch + 1].set_title(f"Ground Truth {channel_names[ch]}")
         axes[0][ch + 1].axis("off")
 
         # Predicted segmentation
@@ -127,7 +128,7 @@ def segment_image(model, image, seg):
     accuracy = torch.sum(seg_full == predict_full) / seg_full.numel()
 
     axes[0][6].imshow(seg_full.cpu().numpy(), cmap="tab10")
-    axes[0][6].set_title("Ground truth seg")
+    axes[0][6].set_title("Ground Truth Segmentation")
     axes[0][6].axis("off")
     axes[1][6].imshow(predict_full.cpu().numpy(), cmap="tab10")
     axes[1][6].set_title(f"Predicted (accuracy: {accuracy * 100:.1f}%)")

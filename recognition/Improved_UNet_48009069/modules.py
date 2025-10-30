@@ -61,7 +61,7 @@ class ImprovedUNet(nn.Module):
         self.seg2 = nn.Conv2d(64, out_channels, 1)
 
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-        self.sigmoid = nn.Sigmoid()  # Sigmoid activation for final output
+        self.activation = nn.Softmax(dim=1)  # Softmax activation for multiclass segmentation
 
     def decoder_block(self, in_channels, out_channels, dropout_p):
         return nn.Sequential(
@@ -95,8 +95,8 @@ class ImprovedUNet(nn.Module):
 
         out = self.upsample(self.upsample(s3) + s2) + s1
 
-        # Apply sigmoid activation to final output
-        out = self.sigmoid(out)
+        # Apply softmax along the output channels
+        out = self.activation(out)
 
         return out
 
