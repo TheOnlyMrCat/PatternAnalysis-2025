@@ -5,9 +5,9 @@ import torch
 import torch.optim as optim
 
 import dataset
+import experiment
 import modules
 import predict
-import wandb_log
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,7 +28,7 @@ epochs = 24
 learning_rate = 1e-3
 dropout_p = 0.3
 
-run = wandb_log.setup(epochs, learning_rate, dropout_p)
+run = experiment.setup(epochs, learning_rate, dropout_p)
 
 model = modules.ImprovedUNet(in_channels=1, out_channels=5, dropout_p=dropout_p)
 model.to(device)
