@@ -2,15 +2,12 @@
 
 Author: Max Guppy (48009069)
 
-![
-  A plot showing the output of the model.
-  The plot has two rows and seven columns.
-  On the left of each row is a slice of an MRI image of a man's pelvis.
-  To the right of each image are five images showing which parts of the image are background, body, bone, bladder, and prostate.
-  On the very right of each row is a coloured combined segmentation of the entire image.
-](static/celestial_pyramid_12_157.png)
-
-The model is a 2D Improved UNet, based on the brain tumor segmentation model by Isensee et al. (<https://arxiv.org/pdf/1802.10508v1>)
+This folder implements a 2D Improved UNet based on the brain tumor segmentation model by Isensee et al. [\[1\]](#cite-1)
+It differs from a standard UNet in a few ways.
+In the encoder stage, pre-activation residual blocks are used between the downscaling stages, and in the decoder stage, outputs from all stages are aggregated to construct the final segmentation.
+Both of these features allow gradients to flow through the network more easily, making it faster to train.
+Additionally, in the 'context blocks' in the encoder stage, and in the decoder blocks, there are instance normalisation layers and dropout layers in between the convolution layers.
+For downsampling, we use 5x5 convolution layers with stride 2.
 
 ![
   A diagram of the model's architecture.
@@ -73,3 +70,19 @@ The modes do the following:
 - `idx <INDEX>` will choose the `INDEX`th image from the test set and plot the predicted segmentation against the ground truth.
 - `summary` will run inference on the entire test set and show a summary of the accuracy (similar to the summary printed at the end of training).
 - `details` will run inference on the entire test set and output a detailed log of loss/similarity/accuracy to `test.csv`
+
+## Results
+
+![
+  A plot showing the output of the model.
+  The plot has two rows and seven columns.
+  On the left of each row is a slice of an MRI image of a man's pelvis.
+  To the right of each image are five images showing which parts of the image are background, body, bone, bladder, and prostate.
+  On the very right of each row is a coloured combined segmentation of the entire image.
+](static/celestial_pyramid_12_157.png)
+
+## References
+
+<a id="cite-1">[1]</a> F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation
+and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,” Feb. 2018. \[Online\].
+Available: https://arxiv.org/abs/1802.10508v1
