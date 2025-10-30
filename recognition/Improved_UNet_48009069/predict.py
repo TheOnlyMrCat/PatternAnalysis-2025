@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -8,6 +9,89 @@ from tqdm import tqdm
 
 import dataset
 import modules
+
+
+@dataclass
+class TestResults():
+    """
+    The results of testing a model against the HipMRI Dataset, broken down by test case and by label.
+
+    Args:
+        testset: The dataset this test was run against.
+        loss: Overall Dice Loss for each test case
+        similarity: Dice Similarity Coefficient for each label of each test case
+        accuracy: Overall segmentation accuracy for each test case
+    """
+    testset: dataset.HipMRIDataset
+    loss: list[float]
+    similarity: list[list[float]]
+    accuracy: list[float]
+
+    def avg_loss(self) -> float:
+        return sum(self.loss) / len(self.loss)
+
+    def avg_accuracy(self) -> float:
+        return sum(self.accuracy) / len(self.accuracy)
+
+    def print_summary(self):
+        loss = self.avg_loss()
+        sim = np.asarray(self.similarity)
+        accuracy = self.avg_accuracy()
+        print(f"Average loss: {loss:.5f}")
+        print("Dice Similarity Coefficients (min/avg/max):")
+        print(f"- Background: {np.min(sim[:, 0]):.3f}/{np.sum(sim[:, 0]) / sim.shape[0]:.3f}/{np.max(sim[:, 0]):.3f}")
+        print(f"- Body: {np.min(sim[:, 1]):.3f}/{np.sum(sim[:, 1]) / sim.shape[0]:.3f}/{np.max(sim[:, 1]):.3f}")
+        print(f"- Bone: {np.min(sim[:, 2]):.3f}/{np.sum(sim[:, 2]) / sim.shape[0]:.3f}/{np.max(sim[:, 2]):.3f}")
+        print(f"- Bladder: {np.min(sim[:, 3]):.3f}/{np.sum(sim[:, 3]) / sim.shape[0]:.3f}/{np.max(sim[:, 3]):.3f}")
+        print(f"- Prostate: {np.min(sim[:, 4]):.3f}/{np.sum(sim[:, 4]) / sim.shape[0]:.3f}/{np.max(sim[:, 4]):.3f}")
+        print(f"Accuracy: {accuracy * 100:.1f}%")
+
+
+def test_model(
+    model: torch.nn.Module,
+    testset: dataset.HipMRIDataset,
+    *,
+    device: torch.device,
+    progress: bool = True,
+    batch_size: int = 1,
+    shuffle: bool = False,
+) -> TestResults:
+    """
+    Test an image segmentation model on the given test dataset, recording loss,
+    Dice similarity, and accuracy for each batch.
+
+    Args:
+        model: The image segmentation model being tested.
+        testset: The dataset to test the model against.
+        device: The PyTorch device to run the segmentation on.
+                The passed `model` should already be on this device.
+                Data from `testset` will be loaded to this device before running inference.
+        progress: Print a progress bar to stderr.
+        batch_size, shuffle: Passed directly to the constructor for `torch.utils.data.DataLoader`.
+    """
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=shuffle)
+    criterion = modules.MulticlassDiceLoss()
+
+    model.eval()
+    losses = []
+    similarities = []
+    accuracies = []
+    with torch.no_grad():
+        for batch_idx, (images, masks) in enumerate(tqdm(test_loader, disable=not progress)):
+            images, masks = images.to(device), masks.to(device)
+            outputs = model(images)
+
+            losses.append(criterion(outputs, masks).cpu().item())
+            similarities.append([
+                1 - modules.DiceLoss()(outputs[:, ch], masks[:, ch]).cpu().item()
+                for ch in range(5)
+            ])
+
+            seg = torch.argmax(masks, 1)
+            predicted_seg = torch.argmax(outputs, 1)
+            accuracies.append((torch.sum(seg == predicted_seg) / seg.numel()).cpu().item())
+
+    return TestResults(testset, losses, similarities, accuracies)
 
 
 def segment_image(model, image, seg):
@@ -52,7 +136,7 @@ def segment_image(model, image, seg):
     plt.show()
 
 
-def predict_random(model):
+def predict_random(model: torch.nn.Module):
     dataset_root = os.getenv("HIPMRI_ROOT")
     if dataset_root is None:
         print("error: need $HIPMRI_ROOT to be set to root path of dataset")
@@ -63,46 +147,14 @@ def predict_random(model):
     segment_image(model, image, seg)
 
 
-def test_summary(model):
+def test_summary(model: torch.nn.Module, *, device: torch.device):
     dataset_root = os.getenv("HIPMRI_ROOT")
     if dataset_root is None:
         print("error: need $HIPMRI_ROOT to be set to root path of dataset")
         exit(1)
     testset = dataset.load_test(dataset_root)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=1, shuffle=True)
 
-    criterion = modules.MulticlassDiceLoss()
-    model.eval()
-    losses = []
-    similarities = []
-    accuracies = []
-    with torch.no_grad():
-        for batch_idx, (images, masks) in enumerate(tqdm(test_loader)):
-            images, masks = images.to(device), masks.to(device)
-            outputs = model(images)
-
-            losses.append(criterion(outputs, masks))
-            similarities.append([
-                1 - modules.DiceLoss()(outputs[:, ch], masks[:, ch])
-                for ch in range(5)
-            ])
-
-            seg = torch.argmax(masks, 1)
-            predicted_seg = torch.argmax(outputs, 1)
-            accuracies.append(torch.sum(seg == predicted_seg) / seg.numel())
-
-    avg_loss = sum(losses) / len(losses)
-    accuracy = sum(accuracies) / len(accuracies)
-    sim = np.asarray(similarities)
-    print("Test complete!")
-    print(f"Average loss: {avg_loss:.5f}")
-    print("Dice Similarity Coefficients (min/avg/max):")
-    print(f"- Background: {np.min(sim[:, 0]):.3f}/{np.sum(sim[:, 0]) / sim.shape[0]:.3f}/{np.max(sim[:, 0]):.3f}")
-    print(f"- Body: {np.min(sim[:, 1]):.3f}/{np.sum(sim[:, 1]) / sim.shape[0]:.3f}/{np.max(sim[:, 1]):.3f}")
-    print(f"- Bone: {np.min(sim[:, 2]):.3f}/{np.sum(sim[:, 2]) / sim.shape[0]:.3f}/{np.max(sim[:, 2]):.3f}")
-    print(f"- Bladder: {np.min(sim[:, 3]):.3f}/{np.sum(sim[:, 3]) / sim.shape[0]:.3f}/{np.max(sim[:, 3]):.3f}")
-    print(f"- Prostate: {np.min(sim[:, 4]):.3f}/{np.sum(sim[:, 4]) / sim.shape[0]:.3f}/{np.max(sim[:, 4]):.3f}")
-    print(f"Accuracy: {accuracy * 100:.1f}%")
+    test_model(model, testset, device=device).print_summary()
 
 
 if __name__ == "__main__":
@@ -121,4 +173,4 @@ if __name__ == "__main__":
         case "random":
             predict_random(model)
         case "summary":
-            test_summary(model)
+            test_summary(model, device=device)
