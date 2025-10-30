@@ -39,14 +39,16 @@ If using W&B, the model is also uploaded as an artifact every epoch.
 ### Inference
 
 The `predict.py` script demonstrates inference with the test set.
-It has several modes, and can be run as follows:
+It has several subcommands, which can be run as follows:
 
 ```sh
 $ export HIPMRI_ROOT=/path/to/hipmri/keras_slices_data
-$ python predict.py [-m <path/to/model.pt>] <random|summary>
+$ python predict.py [-m <path/to/model.pt>] <random|idx|summary|details>
 ```
 
 The modes do the following:
 
 - `random` will choose a random image from the test set and plot the predicted segmentation against the ground truth.
+- `idx <INDEX>` will choose the `INDEX`th image from the test set and plot the predicted segmentation against the ground truth.
 - `summary` will run inference on the entire test set and show a summary of the accuracy (similar to the summary printed at the end of training).
+- `details` will run inference on the entire test set and output a detailed log of loss/similarity/accuracy to `test.csv`

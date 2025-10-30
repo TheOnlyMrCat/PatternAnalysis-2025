@@ -1,4 +1,5 @@
 import argparse
+import csv
 from dataclasses import dataclass
 import matplotlib.pyplot as plt
 import numpy as np
@@ -147,6 +148,17 @@ def predict_random(model: torch.nn.Module):
     segment_image(model, image, seg)
 
 
+def predict_idx(model: torch.nn.Module, idx: int):
+    dataset_root = os.getenv("HIPMRI_ROOT")
+    if dataset_root is None:
+        print("error: need $HIPMRI_ROOT to be set to root path of dataset")
+        exit(1)
+    testset = dataset.load_test(dataset_root)
+
+    image, seg = testset[idx]
+    segment_image(model, image, seg)
+
+
 def test_summary(model: torch.nn.Module, *, device: torch.device):
     dataset_root = os.getenv("HIPMRI_ROOT")
     if dataset_root is None:
@@ -157,10 +169,66 @@ def test_summary(model: torch.nn.Module, *, device: torch.device):
     test_model(model, testset, device=device).print_summary()
 
 
+def test_details(model: torch.nn.Module, *, device: torch.device):
+    dataset_root = os.getenv("HIPMRI_ROOT")
+    if dataset_root is None:
+        print("error: need $HIPMRI_ROOT to be set to root path of dataset")
+        exit(1)
+    testset = dataset.load_test(dataset_root)
+
+    test_results = test_model(model, testset, device=device)
+
+    with open("test.csv", "w", newline="") as out_file:
+        writer = csv.writer(out_file)
+
+        # Header row
+        writer.writerow([
+            "index",
+            "image_file",
+            "segmentation_file",
+            "loss",
+            "acc",
+            "background_sim",
+            "body_sim",
+            "bone_sim",
+            "bladder_sim",
+            "prostate_sim",
+        ])
+
+        # Data rows
+        writer.writerows([
+            [
+                i,
+                testset.image_file(i),
+                testset.seg_file(i),
+                loss,
+                acc,
+                sim[0],
+                sim[1],
+                sim[2],
+                sim[3],
+                sim[4],
+            ]
+            for i, (loss, sim, acc) in enumerate(zip(
+                test_results.loss,
+                test_results.similarity,
+                test_results.accuracy
+            ))
+        ])
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model", default="model.pt", help="the model to load")
-    parser.add_argument("action", choices=["random", "summary"])
+    subparsers = parser.add_subparsers(dest="action")
+
+    parser_random = subparsers.add_parser("random")
+    parser_summary = subparsers.add_parser("summary")
+    parser_details = subparsers.add_parser("details")
+
+    parser_idx = subparsers.add_parser("idx")
+    parser_idx.add_argument("idx", type=int, help="index in the testing set of the image to display")
+
     args = parser.parse_args()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -170,7 +238,11 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(args.model, map_location=device))
 
     match args.action:
-        case "random":
+        case "random" | None:
             predict_random(model)
+        case "idx":
+            predict_idx(model, args.idx)
         case "summary":
             test_summary(model, device=device)
+        case "details":
+            test_details(model, device=device)

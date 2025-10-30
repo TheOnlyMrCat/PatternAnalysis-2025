@@ -136,8 +136,11 @@ class HipMRIDataset(torch.utils.data.Dataset):
         self.seg_transform = seg_transform
 
         self.cases = list(
-            {filename.removeprefix("case_") for filename in os.listdir(image_dir)}
+            filename.removeprefix("case_")
+            for filename in os.listdir(image_dir)
         )
+        self.cases.sort()
+
         self.images = load_data_2D([os.path.join(self.image_dir, f"case_{case}") for case in self.cases])
         self.segmentations = load_data_2D(
             [os.path.join(self.segment_dir, f"seg_{case}") for case in self.cases],
@@ -159,6 +162,13 @@ class HipMRIDataset(torch.utils.data.Dataset):
             segmentation = self.seg_transform(segmentation)
 
         return torch.from_numpy(np.reshape(image, (1,) + image.shape)), torch.from_numpy(segmentation.transpose((2, 0, 1)))
+
+    def image_file(self, idx: int) -> str:
+        return os.path.join(self.image_dir, f"case_{self.cases[idx]}")
+
+    def seg_file(self, idx: int) -> str:
+        return os.path.join(self.segment_dir, f"seg_{self.cases[idx]}")
+
 
 def load_train_val(root: str) -> tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
     """
