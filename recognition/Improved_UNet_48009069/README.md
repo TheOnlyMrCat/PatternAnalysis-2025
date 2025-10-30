@@ -85,16 +85,11 @@ Validation loss plateaus slightly higher, at about 0.08, and fluctuates as train
 Validation accuracy (measured by percentage of pixels correctly segmented) tends to remain consistent at just under 0.97.
 This suggests not too much overfitting is happening with this learning rate.
 
-![
-  A plot of the validation loss of several training runs of the model.
-  Values fluctuate by about 0.05 in every epoch, but tend to start at 0.1 and decrease to 0.08.
-](static/val_loss.png)
 
-![
-  A plot of the validation accuracy of several training runs of the model.
-  Values tend to start at 0.95, then plateau at 0.97.
-  A couple of runs have downwards spikes by 0.01 or 0.02 some epochs.
-](static/val_accuracy.png)
+<div style="display: block">
+  <img alt="A plot of the validation loss of several training runs of the model. Values fluctuate by about 0.05 in every epoch, but tend to start at 0.1 and decrease to 0.08." src="static/val_loss.png" style="display: inline; width: 45%">
+  <img alt="A plot of the validation accuracy of several training runs of the model. Values tend to start at 0.95, then plateau at 0.97. A couple of runs have downwards spikes by 0.01 or 0.02 some epochs." src="static/val_accuracy.png" style="display: inline; width: 45%">
+</div>
 
 The best run seems to be `celestial-pyramid-12`, which had a learning rate of 0.0005 (compared to the other runs' 0.001).
 
