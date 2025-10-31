@@ -1,3 +1,9 @@
+"""
+Functions for loading the HipMRI dataset from NIfTI files.
+
+Author: Max Guppy (48009069)
+"""
+
 import os
 import torch
 import torch.nn as nn

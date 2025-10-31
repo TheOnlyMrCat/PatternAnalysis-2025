@@ -1,3 +1,9 @@
+"""
+Modules used in the implementation of the 2D Improved UNet and its training.
+
+Author: Max Guppy (48009069)
+"""
+
 import torch
 import torch.nn as nn
 

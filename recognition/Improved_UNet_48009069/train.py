@@ -1,3 +1,10 @@
+"""
+Script for training and testing the 2D Improved UNet.
+Logs training status to terminal, and to W&B if installed.
+
+Author: Max Guppy (48009069)
+"""
+
 import os
 import matplotlib.pyplot as plt
 import numpy as np

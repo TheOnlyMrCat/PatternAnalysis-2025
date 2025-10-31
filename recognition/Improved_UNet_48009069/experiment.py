@@ -1,3 +1,10 @@
+"""
+Functions for handling logging for an experiment.
+Logs to W&B if installed, otherwise only saves model to disk.
+
+Author: Max Guppy (48009069)
+"""
+
 import os
 import torch
 

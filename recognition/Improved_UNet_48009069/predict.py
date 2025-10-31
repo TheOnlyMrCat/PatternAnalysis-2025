@@ -1,3 +1,11 @@
+"""
+Functions and script for running inference with the 2D Improved UNet.
+Contains code for testing and validating against a test set, and for
+plotting a segmentation prediction against ground truth.
+
+Author: Max Guppy (48009069)
+"""
+
 import argparse
 import csv
 from dataclasses import dataclass
