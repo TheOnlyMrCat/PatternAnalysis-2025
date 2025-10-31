@@ -103,6 +103,8 @@ Here is its output on image 157 in the test set (`case_040_week_2_slice_42.nii.g
   On the very right of each row is a coloured combined segmentation of the entire image.
 ](static/celestial_pyramid_12_157.png)
 
+Overall, the model achieves an accuracy of 97.6%, and an average DSC of 0.904 on the prostate label.
+
 ## References
 
 <a id="cite-1">[1]</a> F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation
